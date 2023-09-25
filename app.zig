@@ -76,4 +76,15 @@ pub const App = struct {
 
         _ = self.*.task_list.orderedRemove(index_to_remove.?);
     }
+
+    pub fn rename(self: *App, id: u32, new_name: []const u8) void {
+        for (self.*.task_list.items, 0..) |item, index| {
+            if (item.id == id) {
+                self.*.task_list.items[index].name = new_name;
+                return;
+            }
+        }
+
+        print("Id not found.\n", .{});
+    }
 };

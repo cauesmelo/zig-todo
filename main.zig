@@ -113,6 +113,22 @@ pub fn handleCommand(app: *App, cmd: *const Command) void {
             app.remove(id_to_remove);
         },
 
+        .rename => {
+            if (cmd.params.len < 2) {
+                print("Missing id and/or name.\n", .{});
+                return;
+            }
+
+            var id_to_rename = std.fmt.parseInt(u32, cmd.params[0], 10) catch {
+                print("Invalid id format. ({s})\n", .{cmd.params[0]});
+                return;
+            };
+
+            var new_name = cmd.params[1];
+
+            app.rename(id_to_rename, new_name);
+        },
+
         else => std.debug.print("Unknown command.\n", .{}),
     }
 }
