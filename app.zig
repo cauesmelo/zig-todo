@@ -87,4 +87,30 @@ pub const App = struct {
 
         print("Id not found.\n", .{});
     }
+
+    pub fn set(self: *App, id: u32, status: bool) void {
+        for (self.*.task_list.items, 0..) |item, index| {
+            if (item.id == id) {
+                self.*.task_list.items[index].done = status;
+                return;
+            }
+        }
+
+        print("Id not found.\n", .{});
+    }
+
+    pub fn help(self: *App) void {
+        _ = self;
+
+        print("{s}\n\n", .{
+            \\ Commands:
+            \\ list                 ->  List all tasks
+            \\ add {name}           ->  Create new task with name
+            \\ remove {id}          ->  Remove task by id
+            \\ set {id} {status}    -> Update task status(pending | done) by id
+            \\ rename {id} {name}   -> Rename task by id
+            \\ help                 -> Display available commands
+            \\ exit                 -> Exit app
+        });
+    }
 };

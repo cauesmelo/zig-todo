@@ -20,6 +20,8 @@ pub fn readInput() ![]u8 {
 
     try stdin.reader().streamUntilDelimiter(input.writer(), '\n', 1024);
 
+    print("\x1B[2J\x1B[H", .{}); // Console clear
+
     return input.toOwnedSlice();
 }
 
@@ -82,12 +84,12 @@ pub fn handleCommand(app: *App, cmd: *const Command) void {
         },
 
         .unknown => {
-            std.debug.print("Unknown command.\n", .{});
+            std.debug.print("Unknown command\n", .{});
         },
 
         .add => {
             if (cmd.params.len == 0) {
-                print("Missing task name.\n", .{});
+                print("Missing task name\n", .{});
                 return;
             }
             var name = cmd.params[0];
@@ -106,7 +108,7 @@ pub fn handleCommand(app: *App, cmd: *const Command) void {
             }
 
             var id_to_remove = std.fmt.parseInt(u32, cmd.params[0], 10) catch {
-                print("Invalid id format. ({s})\n", .{cmd.params[0]});
+                print("Invalid id format ({s})\n", .{cmd.params[0]});
                 return;
             };
 
@@ -115,12 +117,12 @@ pub fn handleCommand(app: *App, cmd: *const Command) void {
 
         .rename => {
             if (cmd.params.len < 2) {
-                print("Missing id and/or name.\n", .{});
+                print("Missing id and/or name\n", .{});
                 return;
             }
 
             var id_to_rename = std.fmt.parseInt(u32, cmd.params[0], 10) catch {
-                print("Invalid id format. ({s})\n", .{cmd.params[0]});
+                print("Invalid id format ({s})\n", .{cmd.params[0]});
                 return;
             };
 
@@ -129,7 +131,38 @@ pub fn handleCommand(app: *App, cmd: *const Command) void {
             app.rename(id_to_rename, new_name);
         },
 
-        else => std.debug.print("Unknown command.\n", .{}),
+        .set => {
+            if (cmd.params.len < 2) {
+                print("Missing id and/or status\n", .{});
+                return;
+            }
+
+            var id_to_set = std.fmt.parseInt(u32, cmd.params[0], 10) catch {
+                print("Invalid id format ({s})\n", .{cmd.params[0]});
+                return;
+            };
+
+            var status: ?bool = null;
+
+            if (eql(cmd.params[1], "done")) {
+                status = true;
+            }
+
+            if (eql(cmd.params[1], "pending")) {
+                status = false;
+            }
+
+            if (status == null) {
+                print("Invalid status ({s})\n", .{cmd.params[1]});
+                return;
+            }
+
+            app.set(id_to_set, status.?);
+        },
+
+        .help => {
+            app.help();
+        },
     }
 }
 
