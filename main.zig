@@ -1,5 +1,7 @@
 const std = @import("std");
 const ArrayList = std.ArrayList;
+const print = std.debug.print;
+const App = @import("app.zig").App;
 
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 const allocator = gpa.allocator();
@@ -8,16 +10,10 @@ const Operation = enum { add, list, remove, set, rename, help, unknown, exit };
 
 const Command = struct { operation: Operation, params: [][]const u8 };
 
-const Task = struct {
-    id: u32,
-    name: []u8,
-    done: bool,
-};
-
 pub fn readInput() ![]u8 {
     const stdin = std.io.getStdIn();
 
-    std.debug.print("\nCommand: ", .{});
+    std.debug.print("-> ", .{});
 
     var input = ArrayList(u8).init(allocator);
     defer input.deinit();
@@ -74,29 +70,32 @@ pub fn parseInput(input: []u8) !*const Command {
         try params_list.append(param);
     }
 
-    return &Command{ .operation = getOperation(op), .params = try params_list.toOwnedSlice() };
+    var cmd = Command{ .operation = getOperation(op), .params = try params_list.toOwnedSlice() };
+
+    return &cmd;
 }
 
-pub fn handleCommand(cmd: *const Command) void {
+pub fn handleCommand(app: *App, cmd: *const Command) void {
     switch (cmd.operation) {
-        Operation.exit => std.os.exit(0),
-        else => std.debug.print("Comando desconhecido.", .{}),
+        .exit => std.os.exit(0),
+        .unknown => std.debug.print("Unknown command.", .{}),
+        .add => app.add(cmd.params),
+        .list => app.list(),
+        else => std.debug.print("Unknown command.", .{}),
     }
 }
 
 pub fn main() !void {
-    var exit = false;
+    var app = App.init(allocator);
+    defer app.deinit();
 
-    var task_list = ArrayList(Task).init(allocator);
-    defer task_list.deinit();
-
-    while (!exit) {
+    while (true) {
         var input = try readInput();
 
-        var cmd = parseInput(input);
+        var cmd = try parseInput(input);
 
-        std.debug.print("Res: {any}", .{cmd});
+        handleCommand(&app, cmd);
     }
 
-    defer _ = gpa.deinit();
+    _ = gpa.deinit();
 }
