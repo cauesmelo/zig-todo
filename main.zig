@@ -77,11 +77,43 @@ pub fn parseInput(input: []u8) !*const Command {
 
 pub fn handleCommand(app: *App, cmd: *const Command) void {
     switch (cmd.operation) {
-        .exit => std.os.exit(0),
-        .unknown => std.debug.print("Unknown command.", .{}),
-        .add => app.add(cmd.params),
-        .list => app.list(),
-        else => std.debug.print("Unknown command.", .{}),
+        .exit => {
+            std.os.exit(0);
+        },
+
+        .unknown => {
+            std.debug.print("Unknown command.\n", .{});
+        },
+
+        .add => {
+            if (cmd.params.len == 0) {
+                print("Missing task name.\n", .{});
+                return;
+            }
+            var name = cmd.params[0];
+
+            app.add(name);
+        },
+
+        .list => {
+            app.list();
+        },
+
+        .remove => {
+            if (cmd.params.len == 0) {
+                print("Missing id.\n", .{});
+                return;
+            }
+
+            var id_to_remove = std.fmt.parseInt(u32, cmd.params[0], 10) catch {
+                print("Invalid id format. ({s})\n", .{cmd.params[0]});
+                return;
+            };
+
+            app.remove(id_to_remove);
+        },
+
+        else => std.debug.print("Unknown command.\n", .{}),
     }
 }
 

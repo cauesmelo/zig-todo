@@ -35,27 +35,45 @@ pub const App = struct {
         return n;
     }
 
-    pub fn add(self: *App, params: [][]const u8) void {
-        if (params.len == 0) {
-            print("Error: Please type a name for the task", .{});
+    pub fn add(self: *App, name: []const u8) void {
+        if (name.len == 0) {
+            print("Missing task name.\n", .{});
+            return;
         }
 
-        var new_task = Task{ .name = params[0], .id = self.*.getId() };
+        var new_task = Task{ .name = name, .id = self.*.getId() };
 
         self.task_list.append(new_task) catch {
             print("\nError adding task. Not enough memory.\n", .{});
         };
     }
 
-    pub fn list(self: App) void {
+    pub fn list(self: *App) void {
         print("\n == Task list ==\n", .{});
         print("ID\tNAME\tDONE\n", .{});
 
-        for (self.task_list.items) |item| {
+        for (self.*.task_list.items) |item| {
             var status = if (item.done) "done" else "pending";
             print("{d}\t{s}\t{s}\n", .{ item.id, item.name, status });
         }
 
         print("\n", .{});
+    }
+
+    pub fn remove(self: *App, id: u32) void {
+        var index_to_remove: ?usize = undefined;
+
+        for (self.*.task_list.items, 0..) |item, index| {
+            if (item.id == id) {
+                index_to_remove = index;
+            }
+        }
+
+        if (index_to_remove == undefined) {
+            print("Invalid id.\n", .{});
+            return;
+        }
+
+        _ = self.*.task_list.orderedRemove(index_to_remove.?);
     }
 };
